@@ -32,11 +32,15 @@ public:
 
     // TODO: 构造函数，构建 m_*n_ 的矩阵，矩阵元素设为0。
     matrix(int m_, int n_) {
-        if (m_ <= 0 || n_ <= 0) {
+        if (m_ < 0 || n_ < 0) {
             throw matrix_error();
         }
         m = m_;
         n = n_;
+        if (m == 0 || n == 0) {
+            data = nullptr;
+            return;
+        }
         data = new fraction*[m];
         for (int i = 0; i < m; i++) {
             data[i] = new fraction[n];
@@ -156,6 +160,16 @@ public:
     fraction determination() {
         if (m != n || m == 0 || data == nullptr) {
             throw matrix_error();
+        }
+
+        // Special case for 0x0 matrix (shouldn't happen but handle it)
+        if (n == 0) {
+            return fraction(1);
+        }
+
+        // Special case for 1x1 matrix
+        if (n == 1) {
+            return data[0][0];
         }
 
         // 创建临时矩阵进行高斯消元
@@ -292,6 +306,11 @@ public:
     // TODO: 返回节点 interface_id1 和 interface_id2 (1-based)之间的等效电阻。
     //       保证 interface_id1 <= interface_id2 均合法。
     fraction get_equivalent_resistance(int interface_id1, int interface_id2) {
+        // Special case: same node
+        if (interface_id1 == interface_id2) {
+            return fraction(0);
+        }
+
         // 计算 M = A^T * C * A
         matrix AT = adjacency.transposition();
         matrix temp = conduction * adjacency;
